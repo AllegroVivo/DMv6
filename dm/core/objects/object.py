@@ -39,9 +39,6 @@ class DMObject:
     _rank: :class:`int`
         The rank of this object.
 
-    _unlock: Optional[:class:`UnlockPack`]
-        The unlock pack for this object, if present.
-
     Properties:
     -----------
     name: :class:`str`
@@ -52,9 +49,6 @@ class DMObject:
 
     rank: :class:`int`
         Returns the rank of the object.
-
-    unlock: Optional[:class:`UnlockPack`]
-        Returns the unlock pack for the object, if any.
 
     game: :class:`DMGame`
         Returns the game state that this object belongs to.
@@ -102,7 +96,6 @@ class DMObject:
         "_name",
         "_description",
         "_rank",
-        "_unlock",
     )
 
 ################################################################################
@@ -112,8 +105,7 @@ class DMObject:
         _id: str,
         name: str,
         description: Optional[str],
-        rank: int = 0,
-        unlock: Optional[UnlockPack] = None
+        rank: int = 0
     ):
 
         self._uuid: UUID = uuid4()
@@ -123,7 +115,6 @@ class DMObject:
         self._name: str = name
         self._description: Optional[str] = description
         self._rank: int = rank
-        self._unlock: Optional[UnlockPack] = unlock
 
 ################################################################################
     def __eq__(self, other: DMObject) -> bool:
@@ -172,21 +163,8 @@ class DMObject:
 
 ################################################################################
     @property
-    def unlock(self) -> Optional[UnlockPack]:
-        """Returns the expansion pack that this object is a part of, if any.
-
-        Returns:
-        --------
-        Optional[:class:`UnlockPack`]
-            The expansion pack that this object is a part of, if any.
-        """
-
-        return self._unlock
-
-################################################################################
-    @property
     def game(self) -> DMGame:
-        """Returns the game object that this object is a part of."""
+        """Returns the main game instance."""
 
         return self._state
 

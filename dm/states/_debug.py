@@ -22,12 +22,14 @@ class _DebugState(DMState):
 
         super().__init__(game)
 
+        self.game.dungeon._map[1][3]._monsters = [
+            self.game.spawn.monster("Bat")
+        ]
+
 ################################################################################
     def handle_event(self, event: Event) -> None:
 
-        if event.type == KEYDOWN:
-            if event.key == K_TAB:
-                self.game.dungeon.spawn_hero()
+        pass
 
 ################################################################################
     def draw(self, screen: Surface) -> None:

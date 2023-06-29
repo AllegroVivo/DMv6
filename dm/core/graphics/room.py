@@ -35,6 +35,11 @@ class DMRoomGraphics(GraphicalComponent):
 ################################################################################
     def _load_sprites(self) -> None:
 
+        # If we're copying a pre-existing graphical component, we don't need to
+        # load the sprites again.
+        if self._static is not None:
+            return
+
         self._static = pygame.image.load(
             f"assets/sprites/rooms/{class_to_file_name(self._parent)}.png"
         )

@@ -50,13 +50,16 @@ class GraphicalComponent:
     __slots__ = (
         "_parent",
         "_static",
+        "_zoom",
     )
 
 ################################################################################
     def __init__(self, parent: DMObject):
 
         self._parent: DMObject = parent
+
         self._static: Optional[Surface] = None
+        self._zoom: Optional[Surface] = None
 
 ################################################################################
     @property
@@ -79,6 +82,13 @@ class GraphicalComponent:
         """The base static sprite for the parent object."""
 
         return self._static
+
+################################################################################
+    @property
+    def zoom(self) -> Optional[Surface]:
+        """The zoomed sprite for the parent object."""
+
+        return self._zoom
 
 ################################################################################
     def _load_sprites(self) -> None:
@@ -127,7 +137,9 @@ class GraphicalComponent:
         new_obj = cls.__new__(cls)
 
         new_obj._parent = parent
+
         new_obj._static = self._static
+        new_obj._zoom = self._zoom
 
         return new_obj
 

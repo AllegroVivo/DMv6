@@ -17,6 +17,7 @@ from utilities  import *
 
 if TYPE_CHECKING:
     from ..game.game import DMGame
+    from ..objects.unit import DMUnit
 ################################################################################
 
 __all__ = ("DMRoom",)
@@ -62,11 +63,10 @@ class DMRoom(DMObject):
         _id: str,
         name: str,
         description: str,
-        rank: int,
-        unlock: Optional[UnlockPack]
+        rank: int
     ):
 
-        super().__init__(state, _id, name, description, rank, unlock)
+        super().__init__(state, _id, name, description, rank)
 
         self._graphics: DMRoomGraphics = DMRoomGraphics(self)
         self._grid_pos: Vector2 = position
@@ -113,6 +113,12 @@ class DMRoom(DMObject):
         new_obj._graphics = self._graphics._copy(new_obj)
 
         return new_obj
+
+################################################################################
+    @property
+    def monsters(self) -> List[DMMonster]:
+
+        return [m for m in self.game.inventory.monsters if m.room == self]
 
 ################################################################################
     @staticmethod
