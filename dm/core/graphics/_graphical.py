@@ -6,6 +6,7 @@ from typing     import TYPE_CHECKING, Optional, Type, TypeVar
 if TYPE_CHECKING:
     from dm.core.objects.object    import DMObject
     from dm.core.game.game         import DMGame
+    from dm.core.objects.room       import DMRoom
 ################################################################################
 
 __all__ = ("GraphicalComponent",)
@@ -81,6 +82,12 @@ class GraphicalComponent:
         be overridden by subclasses to be more specific for type checking."""
 
         raise NotImplementedError
+
+################################################################################
+    @property
+    def room(self) -> Optional[DMRoom]:
+
+        return self._parent.room
 
 ################################################################################
     @property

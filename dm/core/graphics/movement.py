@@ -24,10 +24,15 @@ class MovementComponent:
         "_direction",
         "_target_pos",
         "_moving",
-        "_move_cooldown"
+        "_move_cooldown",
+        "_death_timer",
+        "_death_start",
+        "_death_end",
     )
 
     DIRECTIONS = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
+    DEATH_TIME = 2.0  # Time in seconds to show the death sprite
+    DEATH_HEIGHT = 50  # Height of the death arc in pixels
 
 ################################################################################
     def __init__(self, parent: DMUnit):
@@ -37,8 +42,12 @@ class MovementComponent:
         self._screen_pos: Vector2 = None  # type: ignore
         self._direction: Optional[Vector2] = Vector2(-1, 0)  # Moving left from the entrance into the dungeon.
         self._target_pos: Optional[Vector2] = None
-        self._moving: bool = True
 
+        self._death_timer: Optional[float] = None
+        self._death_start: Optional[Vector2] = None
+        self._death_end: Optional[Vector2] = None
+
+        self._moving: bool = True
         self._move_cooldown: float = 0
 
 ################################################################################
@@ -72,13 +81,40 @@ class MovementComponent:
         return self._moving
 
 ################################################################################
+    @property
+    def dying(self) -> bool:
+
+        return self._death_timer is not None
+
+################################################################################
     def update(self, dt: float) -> None:
 
+        if self.dying:
+            self.update_death(dt)
         if self.moving:
-            if self._move_cooldown > 0:
-                self._move_cooldown -= dt
-                return
-            self.move(dt)
+            self.update_movement(dt)
+
+################################################################################
+    def update_movement(self, dt: float) -> None:
+
+        if self._move_cooldown > 0:
+            self._move_cooldown -= dt
+            return
+        self.move(dt)
+
+################################################################################
+    def update_death(self, dt: float) -> None:
+
+        print(f"Before: {self._screen_pos}")
+        self._death_timer += dt
+        t = self._death_timer / self.DEATH_TIME
+        if t > 1:
+            self.finish_death()
+        else:
+            # Update position based on a parabolic function
+            self._screen_pos.x = lerp(self._death_start.x, self._death_end.x, t)
+            self._screen_pos.y = self._death_start.y - self.DEATH_HEIGHT * (4 * t * (1 - t))
+            print(f"After: {self._screen_pos}")
 
 ################################################################################
     def move(self, dt: float) -> None:
@@ -122,7 +158,23 @@ class MovementComponent:
 
         self._moving = False
         self._direction = None
-        self._move_cooldown = 0.5
+        self._move_cooldown = 0.2
+
+################################################################################
+    def play_death(self) -> None:
+
+        self._death_timer = 0
+        self._death_start = self.screen_pos
+
+        death_direction = 1 if self._parent.is_hero() else -1
+        self._death_end = self.screen_pos + Vector2(100 * death_direction, 0)
+
+################################################################################
+    def finish_death(self) -> None:
+
+        self._death_timer = None
+        self._death_start = None
+        self._death_end = None
 
 ################################################################################
     def set_target_pos(self) -> None:
@@ -142,7 +194,7 @@ class MovementComponent:
 
         self._direction = self._parent.random.choice(self.DIRECTIONS)
         target_room = self.game.get_room_at(self.room.grid_pos + self._direction)
-        if target_room is None:
+        if target_room is None or target_room.is_entrance:
             self.choose_direction()
 
 ################################################################################
@@ -166,6 +218,10 @@ class MovementComponent:
         new_obj._moving = True
         new_obj._target_pos = None
         new_obj._move_cooldown = 0
+
+        new_obj._death_timer = None
+        new_obj._death_start = None
+        new_obj._death_end = None
 
         return new_obj
 

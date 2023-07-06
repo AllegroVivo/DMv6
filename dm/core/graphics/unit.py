@@ -22,6 +22,7 @@ UG = TypeVar("UG", bound="UnitGraphical")
 class UnitGraphical(GraphicalComponent):
 
     __slots__ = (
+        "_mover",
         "_attack",
         "_animator",
         "_spritesheet",
@@ -96,7 +97,8 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def draw(self, screen: Surface) -> None:
 
-        screen.blit(self._attack if self._attacking else self.current_frame, self.screen_pos)
+        pos_rect = self.current_frame.get_rect(center=self.screen_pos)
+        screen.blit(self.current_frame, pos_rect)
 
 ################################################################################
     def _assert_frame_size(self) -> None:
@@ -124,13 +126,21 @@ class UnitGraphical(GraphicalComponent):
             self._attack_timer -= dt
             if self._attack_timer <= 0:
                 self._attacking = False
-                self._attack_timer = 0.5
 
 ################################################################################
     @property
     def current_frame(self) -> Surface:
 
+        if self._attacking:
+            return self._attack
+
         return self._animator.current_frame
+
+################################################################################
+    @property
+    def rect(self) -> Rect:
+
+        return self.current_frame.get_rect()
 
 ################################################################################
     def _copy(self, parent: DMObject) -> UnitGraphical:
@@ -152,6 +162,14 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def play_attack(self) -> None:
 
+        self._attack_timer = 0.50
         self._attacking = True
+
+################################################################################
+    def play_death(self) -> None:
+
+        # Implemented in the HeroGraphical class since they're the only ones that
+        # have a death sprite.
+        pass
 
 ################################################################################

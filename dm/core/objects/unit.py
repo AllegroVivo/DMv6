@@ -19,6 +19,7 @@ from utilities              import *
 
 if TYPE_CHECKING:
     from dm.core.game.game import DMGame
+    from dm.core.game.contexts import AttackContext
 ################################################################################
 
 __all__ = ("DMUnit",)
@@ -57,11 +58,10 @@ class DMUnit(DMObject):
 
         self._graphics: UnitGraphical = graphics
         self._mover: Optional[MovementComponent] = None
-
-        self._opponent: Optional[DMUnit] = None
-
         if self.is_hero():
             self._mover = MovementComponent(self)
+
+        self._opponent: Optional[DMUnit] = None
 
 ################################################################################
     @property
@@ -222,13 +222,17 @@ class DMUnit(DMObject):
 ################################################################################
     def start_movement(self) -> None:
 
-        self._mover.start_movement()
+        if self.is_hero():
+            self._mover.start_movement()
 
 ################################################################################
     def damage(self, amount: int) -> None:
 
         print(f"{self.name} took {amount} damage!")
         self._stats.damage(amount)
+
+        if not self.is_alive:
+            self._mover.play_death()
 
 ################################################################################
     def heal(self, amount: int) -> None:

@@ -24,6 +24,7 @@ __all__ = (
     "grid_to_center_pixel",
     "center_text",
     "class_to_file_name",
+    "lerp",
 )
 
 ################################################################################
@@ -185,5 +186,10 @@ def class_to_file_name(obj: Any):
     return ''.join(
         ['_' + i.lower() if i.isupper() else i for i in obj.__class__.__name__]
     ).lstrip('_')
+
+################################################################################
+def lerp(a: float, b: float, t: float) -> float:
+
+    return a + (b - a) * t
 
 ################################################################################

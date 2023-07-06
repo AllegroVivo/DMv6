@@ -43,8 +43,8 @@ class MonsterGraphical(UnitGraphical):
 
         index = self.parent.room.monsters.index(self.parent)  # type: ignore
 
-        monster_x = room_x
-        monster_y = room_y - 25 + monster_spacing * (index + 1)
+        monster_x = room_x + 25
+        monster_y = room_y + monster_spacing * (index + 1)
 
         return monster_x, monster_y
 

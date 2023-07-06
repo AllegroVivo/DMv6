@@ -23,40 +23,60 @@ HG = TypeVar("HG", bound="HeroGraphical")
 class HeroGraphical(UnitGraphical):
 
     __slots__ = (
-
+        "_death",
     )
 
 ################################################################################
     def __init__(self, parent: DMObject, frame_count: int = 5):
 
+        # Instantiate this first so it's present when we call `_load_sprites` in the parent.
+        self._death: Optional[Surface] = None
+
         super().__init__(parent, frame_count)
+
+################################################################################
+    def _load_sprites(self) -> None:
+
+        super()._load_sprites()
+
+        if self._death is None:
+            self._death = pygame.image.load(
+                f"assets/sprites/heroes/{class_to_file_name(self._parent)}/death.png"
+            )
+
+################################################################################
+    @property
+    def current_frame(self) -> Surface:
+
+        if self.parent._mover.dying:
+            return self._death
+
+        return super().current_frame
 
 ################################################################################
     @property
     def screen_pos(self) -> Vector2:
 
-        position = self.parent.screen_pos
         if self.parent.engaged:
             position = Vector2(self.parent._opponent.screen_pos)
-            position.x += 80
-            position.y += 20
+            position.x += (self.parent._opponent._graphics.current_frame.get_width() / 2) + 5
+            return position
 
-        return position
+        return self.parent.screen_pos
 
 ################################################################################
-    def draw(self, screen: Surface) -> None:
+    @property
+    def dying(self) -> bool:
 
-        if not self._attacking:
-            pos_rect = self.current_frame.get_rect(center=self.screen_pos)
-            screen.blit(self.current_frame, pos_rect)
-        else:
-            pos_rect = self._attack.get_rect(center=self.screen_pos)
-            screen.blit(self._attack, pos_rect)
+        return self.parent._mover.dying
 
 ################################################################################
     def _copy(self, parent: DMMonster) -> HeroGraphical:
 
         new_obj: Type[HG] = super()._copy(parent)  # type: ignore
+
+        new_obj._death = self._death.copy()
+
         return new_obj
 
 ################################################################################

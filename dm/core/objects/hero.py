@@ -45,7 +45,7 @@ class DMHero(DMUnit):
             graphics=HeroGraphical(self),
             rank=rank,
             start_cell=start_cell,
-            stats=UnitStats(1000, 1, 1.0)
+            stats=UnitStats(1, 1, 1.0)
         )
 
 ################################################################################
@@ -65,21 +65,6 @@ class DMHero(DMUnit):
         """
 
         self.graphics.draw(screen)
-
-################################################################################
-    def update(self, dt: float) -> None:
-        """Updates the hero.
-
-        Parameters:
-        -----------
-        dt: :class:`float`
-            The time since the last update.
-        """
-
-        if self._mover:
-            self._mover.update(dt)
-
-        self.graphics.update(dt)
 
 ################################################################################
     def _copy(self, **kwargs) -> DMHero:

@@ -34,13 +34,6 @@ class _DebugState(DMState):
         if event.type == KEYDOWN:
             if event.key == K_TAB:
                 self.game.spawn_hero()
-            elif event.key == K_INSERT:
-                for hero in self.game.dungeon.heroes:
-                    hero._moving = True
-        elif event.type == KEYUP:
-            if event.key == K_INSERT:
-                for hero in self.game.dungeon.heroes:
-                    hero._moving = False
 
 ################################################################################
     def draw(self, screen: Surface) -> None:
