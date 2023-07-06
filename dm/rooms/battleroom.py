@@ -30,15 +30,14 @@ class DMBattleRoom(DMRoom):
         _id: str,
         name: str,
         description: str,
-        rank: int,
-        unlock: Optional[UnlockPack] = None,
+        rank: int
     ):
 
-        super().__init__(state, position, _id, name, description, rank, unlock)
+        super().__init__(state, position, _id, name, description, rank)
 
 ################################################################################
-    @staticmethod
-    def is_battle_room() -> bool:
+    @property
+    def is_battle_room(self) -> bool:
 
         return True
 

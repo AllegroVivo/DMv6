@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pygame
 
-from pygame     import Rect, Surface
-from typing     import TYPE_CHECKING, Optional, Tuple, Type, TypeVar
+from pygame     import Rect, Surface, Vector2
+from typing     import TYPE_CHECKING, List, Optional, Tuple, Type, TypeVar
 
 from ._animator  import AnimatorComponent
 from ._graphical    import GraphicalComponent
@@ -11,7 +11,7 @@ from utilities      import *
 
 if TYPE_CHECKING:
     from dm.core.objects.object    import DMObject
-    from dm.core.game.game         import DMGame
+    from dm.core.objects.unit import DMUnit
 ################################################################################
 
 __all__ = ("UnitGraphical",)
@@ -27,17 +27,25 @@ class UnitGraphical(GraphicalComponent):
         "_spritesheet",
         "_frame_count",
         "_frame_size",
-        "_frames",
+        "_attack_timer",
+        "_attacking",
     )
 
 ################################################################################
-    def __init__(self, parent: DMObject):
+    def __init__(self, parent: DMObject, frame_count: int):
 
         super().__init__(parent)
 
         self._attack: Optional[Surface] = None
-        self._animator: Optional[AnimatorComponent] = AnimatorComponent(self)
         self._spritesheet: Optional[Surface] = None
+
+        self._frame_count: int = frame_count
+        self._frame_size: Optional[Tuple[int, int]] = None
+
+        self._animator: Optional[AnimatorComponent] = AnimatorComponent(self)
+
+        self._attacking: bool = False
+        self._attack_timer: float = 0.30
 
         self._load_sprites()
 
@@ -46,15 +54,49 @@ class UnitGraphical(GraphicalComponent):
 
         if self._attack is None:
             self._attack = pygame.image.load(
-                f"assets/sprites/monsters/{class_to_file_name(self._parent)}/attack.png"
+                f"assets/sprites/{self.subdir}/{class_to_file_name(self._parent)}/attack.png"
+            )
+            # Flip the attack sprite for monsters because it's the wrong way. Pfft.
+            if self.subdir == "monsters":
+                self._attack = pygame.transform.flip(self._attack, True, False)
+
+        if self._zoom is None:
+            self._zoom = pygame.image.load(
+                f"assets/sprites/{self.subdir}/{class_to_file_name(self._parent)}/zoom.png"
             )
         if self._spritesheet is None:
             self._spritesheet = pygame.image.load(
-                f"assets/sprites/monsters/{class_to_file_name(self._parent)}/idle.png"
+                f"assets/sprites/{self.subdir}/{class_to_file_name(self._parent)}/idle.png"
             )
+            # Flip the idle sprites for monsters because they're the wrong way. Pfft.
+            if self.subdir == "monsters":
+                self._spritesheet = pygame.transform.flip(self._spritesheet, True, False)
 
             self._assert_frame_size()
             self._split_spritesheet()
+
+################################################################################
+    @property
+    def parent(self) -> DMUnit:
+
+        return self._parent  # type: ignore
+
+################################################################################
+    @property
+    def subdir(self) -> str:
+
+        return "monsters" if self.parent.is_monster() else "heroes"
+
+################################################################################
+    @property
+    def screen_pos(self) -> Vector2:
+
+        raise NotImplementedError
+
+################################################################################
+    def draw(self, screen: Surface) -> None:
+
+        screen.blit(self._attack if self._attacking else self.current_frame, self.screen_pos)
 
 ################################################################################
     def _assert_frame_size(self) -> None:
@@ -66,34 +108,23 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def _split_spritesheet(self) -> None:
 
-        self._frames = []
+        frames = []
         for i in range(self._frame_count):
             frame_location = (i * self._frame_size[0], 0)
-            self._frames.append(self._spritesheet.subsurface(Rect(frame_location, self._frame_size)))
+            frames.append(self._spritesheet.subsurface(Rect(frame_location, self._frame_size)))
 
-################################################################################
-    def draw(self, screen: Surface) -> None:
-
-        screen.blit(self.current_frame, (100, 100))
+        self._animator._frames = frames
 
 ################################################################################
     def update(self, dt: float) -> None:
 
         self._animator.update(dt)
 
-################################################################################
-    def monster_topleft(self) -> Tuple[int, int]:
-
-        parent_room = self.parent.room  # type: ignore
-        room_x, room_y = parent_room._graphics.topleft
-        monster_spacing = ROOM_SIZE / (len(parent_room.monsters) + 1)
-
-        index = parent_room.monsters.index(self.parent)  # type: ignore
-
-        monster_x = room_x
-        monster_y = room_y - 20 + monster_spacing * (index + 1)
-
-        return monster_x, monster_y
+        if self._attacking:
+            self._attack_timer -= dt
+            if self._attack_timer <= 0:
+                self._attacking = False
+                self._attack_timer = 0.5
 
 ################################################################################
     @property
@@ -110,6 +141,17 @@ class UnitGraphical(GraphicalComponent):
         new_obj._animator = self._animator._copy(new_obj)
         new_obj._spritesheet = self._spritesheet.copy()
 
+        new_obj._frame_count = self._frame_count
+        new_obj._frame_size = self._frame_size
+
+        new_obj._attack_timer = 0.30
+        new_obj._attacking = False
+
         return new_obj
+
+################################################################################
+    def play_attack(self) -> None:
+
+        self._attacking = True
 
 ################################################################################

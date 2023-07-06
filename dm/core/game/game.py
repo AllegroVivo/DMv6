@@ -5,8 +5,9 @@ import sys
 
 from pygame         import Surface, Vector2
 from pygame.time    import Clock
-from typing         import TYPE_CHECKING, Callable, List, Optional, Type, Union
+from typing         import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
 
+from dm.core.game.battle_mgr    import DMBattleManager
 from dm.core.game.dungeon       import DMDungeon
 from dm.core.game.day           import DMDay
 from dm.core.game.events        import DMEventManager
@@ -16,7 +17,9 @@ from dm.core.game.state_mgr     import DMStateMachine
 from utilities      import *
 
 if TYPE_CHECKING:
-    pass
+    from dm.core.objects.monster import DMMonster
+    from dm.core.objects.room import DMRoom
+    from dm.core.game.contexts import DMContext
 ################################################################################
 
 __all__ = ("DMGame",)
@@ -132,11 +135,11 @@ class DMGame:
         self._state_machine: DMStateMachine = DMStateMachine(self)
         self._objpool: DMObjectPool = DMObjectPool(self)
         self._dungeon: DMDungeon = DMDungeon(self)
+        self._battle_mgr: DMBattleManager = DMBattleManager(self)
         # self._fateboard: DMFateBoard = DMFateBoard(self)
         # self._dark_lord: DMDarkLord = DMDarkLord(self)
         # self._inventory: DMInventory = DMInventory(self)
         # self._relics: DMRelicManager = DMRelicManager(self)
-        # self._battle_mgr: DMBattleManager = DMBattleManager(self)
 
 ################################################################################
     def run(self) -> None:
@@ -145,6 +148,10 @@ class DMGame:
         This is the main game loop. It is responsible for updating the game
         states, drawing the game states, and handling pygame events.
         """
+
+        # We have to call this down here so it doesn't run into conflicts with
+        # the object pool.
+        self._dungeon._map._init_map()
 
         # Start the game in the main menu state.
         self._state_machine.push_state("main_menu")
@@ -235,6 +242,26 @@ class DMGame:
         return self._dungeon
 
 ################################################################################
+    @property
+    def deployed_monsters(self) -> List[DMMonster]:
+        """The game's deployed monsters.
+
+        This property is a shortcut to the game's deployed monsters. It is used
+        to get the list of all monsters deployed in the dungeon.
+        """
+
+        return self._dungeon.deployed_monsters
+
+    @property
+    def battle_manager(self) -> DMBattleManager:
+        """The game's battle manager.
+
+        This property is a shortcut to the game's battle manager.
+        """
+
+        return self._battle_mgr
+
+################################################################################
     def subscribe_event(self, event: str, callback: Callable) -> None:
         """Subscribe a callback to an event type.
 
@@ -248,5 +275,41 @@ class DMGame:
         """
 
         self._events.subscribe(event, callback)
+
+################################################################################
+    def unsubscribe_event(self, event: str, callback: Callable) -> None:
+
+        self._events.unsubscribe(event, callback)
+
+################################################################################
+    def dispatch_event(self, event: str, *context: DMContext) -> None:
+
+        self._events.dispatch(event, *context)
+
+################################################################################
+    def get_room_at(self, pos: Union[Tuple[int, int], Vector2]) -> Optional[DMRoom]:
+        """Get the room at a given position in the dungeon grid.
+
+        Parameters:
+        -----------
+        pos: :class:`Tuple[int, int]`
+            The position to check.
+
+        Returns:
+        --------
+        Optional[:class:`DMRoom`]
+            The room at the given position.
+        """
+
+        return self._dungeon.get_room_at(pos)
+
+################################################################################
+    def spawn_hero(self) -> None:
+        """Spawn a hero in the dungeon.
+
+        This method is responsible for spawning a hero in the dungeon.
+        """
+
+        self._dungeon.spawn_hero()
 
 ################################################################################

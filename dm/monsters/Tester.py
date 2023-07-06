@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing     import TYPE_CHECKING
+from pygame     import Vector2
+from typing     import TYPE_CHECKING, Optional
 
 from dm.core.objects.monster import DMMonster
 
 if TYPE_CHECKING:
-    from dm.core    import DMGame
+    from dm.core.game.game    import DMGame
 ################################################################################
 
 __all__ = ("Tester",)
@@ -13,19 +14,17 @@ __all__ = ("Tester",)
 ################################################################################
 class Tester(DMMonster):
 
-    def __init__(self, game: DMGame, level: int = 1):
+    def __init__(self, game: DMGame, start_cell: Optional[Vector2] = None):
 
         super().__init__(
-            game,
-            level,
+            game, start_cell,
             _id="MON-XXX",
             name="Tester",
             description="A Snarfblat is upon you!",
-            life=1000,
-            attack=100,
-            defense=1.0,
             rank=1,
-            idle_frames=6
+            life=50,
+            atk=4,
+            defense=1.0
         )
 
 ################################################################################

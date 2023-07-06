@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import pygame.image
 
 from pygame     import Rect, Surface, Vector2
@@ -21,6 +22,7 @@ class DMRoomGraphics(GraphicalComponent):
 
     __slots__ = (
         "_rect",
+        "_surface",
     )
 
 ################################################################################
@@ -29,6 +31,7 @@ class DMRoomGraphics(GraphicalComponent):
         super().__init__(parent)
 
         self._rect: Rect = None  # type: ignore
+        self._surface: Surface = Surface((ROOM_SIZE, ROOM_SIZE))
 
         self._load_sprites()
 
@@ -53,6 +56,8 @@ class DMRoomGraphics(GraphicalComponent):
         # Flip the entry symbol. Looks better.
         if type(self._parent).__name__ == "EntranceRoom":
             self._static = pygame.transform.flip(self._static, True, False)
+
+        self._surface.fill(ROOM_BG if type(self.parent).__name__ != "EntranceRoom" else BLACK)
 
 ################################################################################
     @property
@@ -84,14 +89,16 @@ class DMRoomGraphics(GraphicalComponent):
     def draw(self, screen: Surface) -> None:
 
         self.calculate_rect()
-        bg = ROOM_BG if type(self.parent).__name__ != "EntranceRoom" else BLACK
-        pygame.draw.rect(screen, bg, self._rect)
+
+        bg = BLACK if type(self.parent).__name__ == "EntranceRoom" else ROOM_BG
+        pygame.draw.rect(screen, bg, self._rect)  # type: ignore
 
         # if self._highlighted:
         #     pygame.draw.rect(screen, RED, self._rect, BORDER_THICKNESS)
 
-        idle_rect = self._static.get_rect(center=self.center)
-        screen.blit(self._static, idle_rect)
+        idle_rect = self.static.get_rect()
+        idle_rect.center = self.center
+        screen.blit(self.static, idle_rect)
 
 ################################################################################
     def _copy(self, parent: DMRoom) -> DMRoomGraphics:
@@ -99,6 +106,7 @@ class DMRoomGraphics(GraphicalComponent):
         new_obj: Type[RG] = super()._copy(parent)  # type: ignore
 
         new_obj._rect = self._rect.copy() if self._rect is not None else None
+        new_obj._surface = self._surface.copy()
 
         return new_obj
 

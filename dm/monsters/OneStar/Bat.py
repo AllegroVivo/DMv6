@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing     import TYPE_CHECKING
+from pygame     import Vector2
+from typing     import TYPE_CHECKING, Optional
 
 from dm.core.objects.monster import DMMonster
 
@@ -13,18 +14,17 @@ __all__ = ("Bat",)
 ################################################################################
 class Bat(DMMonster):
 
-    def __init__(self, game: DMGame, level: int = 1):
+    def __init__(self, game: DMGame, start_cell: Optional[Vector2] = None):
 
         super().__init__(
-            game,
-            level,
+            game, start_cell,
             _id="MON-104",
             name="Bat",
-            life=40,
-            attack=6,
-            defense=2.0,
             rank=1,
-            idle_frames=6
+            anim_frames=6,
+            life=40,
+            atk=6,
+            defense=2.0
         )
 
 ################################################################################

@@ -227,7 +227,6 @@ class DMObject:
         new_obj._description = self.description
 
         new_obj._rank = self.rank
-        new_obj._unlock = self.unlock
 
         return new_obj
 

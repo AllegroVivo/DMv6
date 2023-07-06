@@ -17,6 +17,7 @@ from utilities  import *
 
 if TYPE_CHECKING:
     from ..game.game import DMGame
+    from ..objects.monster import DMMonster
     from ..objects.unit import DMUnit
 ################################################################################
 
@@ -53,6 +54,7 @@ class DMRoom(DMObject):
     __slots__ = (
         "_grid_pos",
         "_graphics",
+        "_monsters",
     )
 
 ################################################################################
@@ -70,6 +72,7 @@ class DMRoom(DMObject):
 
         self._graphics: DMRoomGraphics = DMRoomGraphics(self)
         self._grid_pos: Vector2 = position
+        self._monsters: List[DMMonster] = []
 
 ################################################################################
     @property
@@ -111,51 +114,58 @@ class DMRoom(DMObject):
 
         new_obj._grid_pos = kwargs.get("position", self._grid_pos)
         new_obj._graphics = self._graphics._copy(new_obj)
+        new_obj._monsters = []
 
         return new_obj
 
 ################################################################################
     @property
-    def monsters(self) -> List[DMMonster]:
+    def grid_pos(self) -> Vector2:
 
-        return [m for m in self.game.inventory.monsters if m.room == self]
+        return self._grid_pos
 
 ################################################################################
-    @staticmethod
-    def is_battle_room() -> bool:
+    @property
+    def monsters(self) -> List[DMMonster]:
+
+        return self._monsters
+
+################################################################################
+    @property
+    def is_battle_room(self) -> bool:
         """Returns True if the room is a battle room, False otherwise."""
 
         return False
 
 ################################################################################
-    @staticmethod
-    def is_trap_room() -> bool:
+    @property
+    def is_trap(self) -> bool:
         """Returns True if the room is a trap room, False otherwise."""
 
         return False
 
 ################################################################################
-    @staticmethod
-    def is_facility_room() -> bool:
+    @property
+    def is_facility(self) -> bool:
         """Returns True if the room is a facility room, False otherwise."""
 
         return False
 
 ################################################################################
-    @staticmethod
-    def is_boss_room() -> bool:
+    @property
+    def is_boss(self) -> bool:
 
         return False
 
 ################################################################################
-    @staticmethod
-    def is_entry_room() -> bool:
+    @property
+    def is_entrance(self) -> bool:
 
         return False
 
 ################################################################################
-    @staticmethod
-    def is_empty_room() -> bool:
+    @property
+    def is_empty(self) -> bool:
 
         return True
 
@@ -170,5 +180,33 @@ class DMRoom(DMObject):
         """
 
         self._graphics.draw(screen)
+
+################################################################################
+    def deploy(self, monster: DMMonster) -> None:
+
+        if len(self._monsters) >= 3:
+            raise ValueError("Room is full.")
+
+        self._monsters.append(monster)
+        monster._room = self._grid_pos
+
+################################################################################
+    @property
+    def adjacent_rooms(self) -> List[DMRoom]:
+
+        return self._state.dungeon._map.get_adjacent_rooms(
+            self.grid_pos, True, True, True, True, False, False
+        )
+
+################################################################################
+    def try_to_engage(self, unit: DMUnit) -> Optional[DMUnit]:
+
+        if len(self.monsters) == 0:
+            return
+
+        for monster in self.monsters:
+            if monster.is_alive:
+                self.game.battle_manager.engage(monster, unit)
+                return monster
 
 ################################################################################

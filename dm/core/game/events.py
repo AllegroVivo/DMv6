@@ -6,6 +6,7 @@ from utilities  import _EVENT_REFERENCE
 
 if TYPE_CHECKING:
     from .game  import DMGame
+    from .contexts import DMContext
 ################################################################################
 
 __all__ = ("DMEventManager", )
@@ -110,7 +111,7 @@ class DMEventManager:
         self._subscribers[event_type].remove(callback)
 
 ################################################################################
-    def dispatch(self, event_type: str, *context) -> None:
+    def dispatch(self, event_type: str, *context: DMContext) -> None:
         """Dispatch an event to all subscribers.
 
         Parameters:

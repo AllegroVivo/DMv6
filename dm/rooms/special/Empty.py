@@ -22,8 +22,13 @@ class EmptyRoom(DMRoom):
             _id="ROOM-000",
             name="Empty",
             description="There's... nothing here...",
-            rank=0,
-            unlock=None
+            rank=0
         )
+
+################################################################################
+    @property
+    def is_empty(self) -> bool:
+
+        return True
 
 ################################################################################

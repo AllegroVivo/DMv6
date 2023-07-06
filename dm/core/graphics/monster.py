@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pygame
 
-from pygame     import Rect, Surface, Vector2
+from pygame     import Rect, Surface
 from typing     import TYPE_CHECKING, Optional, Tuple, Type, TypeVar
 
 from ._animator  import AnimatorComponent
@@ -15,12 +15,12 @@ if TYPE_CHECKING:
     from dm.core.objects.monster      import DMMonster
 ################################################################################
 
-__all__ = ("HeroGraphical",)
+__all__ = ("MonsterGraphical",)
 
-HG = TypeVar("HG", bound="HeroGraphical")
+MG = TypeVar("MG", bound="MonsterGraphical")
 
 ################################################################################
-class HeroGraphical(UnitGraphical):
+class MonsterGraphical(UnitGraphical):
 
     __slots__ = (
 
@@ -33,30 +33,26 @@ class HeroGraphical(UnitGraphical):
 
 ################################################################################
     @property
-    def screen_pos(self) -> Vector2:
+    def screen_pos(self) -> Tuple[int, int]:
 
-        position = self.parent.screen_pos
-        if self.parent.engaged:
-            position = Vector2(self.parent._opponent.screen_pos)
-            position.x += 80
-            position.y += 20
+        parent_room = self.parent.room  # type: ignore
+        room_x, room_y = parent_room._graphics.topleft
+        # If there are no monsters in the room, the spacing will be 0
+        # but that doesn't matter because there are no monsters to draw.
+        monster_spacing = ROOM_SIZE / (len(parent_room.monsters) + 1)
 
-        return position
+        index = self.parent.room.monsters.index(self.parent)  # type: ignore
 
-################################################################################
-    def draw(self, screen: Surface) -> None:
+        monster_x = room_x
+        monster_y = room_y - 25 + monster_spacing * (index + 1)
 
-        if not self._attacking:
-            pos_rect = self.current_frame.get_rect(center=self.screen_pos)
-            screen.blit(self.current_frame, pos_rect)
-        else:
-            pos_rect = self._attack.get_rect(center=self.screen_pos)
-            screen.blit(self._attack, pos_rect)
+        return monster_x, monster_y
 
 ################################################################################
-    def _copy(self, parent: DMMonster) -> HeroGraphical:
+    def _copy(self, parent: DMMonster) -> MonsterGraphical:
 
-        new_obj: Type[HG] = super()._copy(parent)  # type: ignore
+        new_obj: Type[MG] = super()._copy(parent)  # type: ignore
+
         return new_obj
 
 ################################################################################

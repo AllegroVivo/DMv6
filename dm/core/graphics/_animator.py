@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from pygame     import Surface
-from typing    import TYPE_CHECKING, List
+from typing    import TYPE_CHECKING, List, Type, TypeVar
 
 if TYPE_CHECKING:
     from .unit import UnitGraphical
 ################################################################################
 
 __all__ = ("AnimatorComponent",)
+
+A = TypeVar("A", bound="AnimatorComponent")
 
 ################################################################################
 class AnimatorComponent:
@@ -31,12 +33,11 @@ class AnimatorComponent:
 
         self._cooldown: float = 0
 
-        self._load_sprites()
-
 ################################################################################
-    def _load_sprites(self) -> None:
+    @property
+    def frames(self) -> List[Surface]:
 
-        self._frames = self._parent._frames
+        return self._frames
 
 ################################################################################
     def update(self, dt: float) -> None:
@@ -62,9 +63,18 @@ class AnimatorComponent:
         screen.blit(self.current_frame, self._parent.rect)
 
 ################################################################################
-    @staticmethod
-    def _copy(parent: UnitGraphical) -> AnimatorComponent:
+    def _copy(self, parent: UnitGraphical) -> AnimatorComponent:
 
-        return AnimatorComponent(parent)
+        cls: Type[A] = type(self)
+        new_obj: A = cls.__new__(cls)
+
+        new_obj._parent = parent
+
+        new_obj._current_frame = self._current_frame
+        new_obj._frames = self._frames.copy()
+
+        new_obj._cooldown = self._cooldown
+
+        return new_obj
 
 ################################################################################

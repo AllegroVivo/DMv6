@@ -107,7 +107,7 @@ class StatComponentType(Enum):
     Attack = 2
     Defense = 3
     Dex = 4
-    CombatAbility = 5
+    Combat = 5
     NumAttacks = 6
     Speed = 7
 

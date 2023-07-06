@@ -87,6 +87,7 @@ def text_to_multiline_str(text: str, max_line_length: int) -> List[str]:
     lines.append(' '.join(current_line))  # Add the last line
 
     return lines
+
 ################################################################################
 def text_to_multiline_rect(text: str, rect: Rect, max_line_length: int, line_height: int) -> Dict[str, Rect]:
 
@@ -150,8 +151,8 @@ def multicolor_text(
 ################################################################################
 def pixel_to_grid(screen_position: Vector2) -> Vector2:
 
-    grid_x = screen_position.x // (ROOM_SIZE + GRID_PADDING)
-    grid_y = screen_position.y // (ROOM_SIZE + GRID_PADDING)
+    grid_x = (screen_position.x - 50) // (ROOM_SIZE + GRID_PADDING)
+    grid_y = (screen_position.y - 50) // (ROOM_SIZE + GRID_PADDING)
 
     return Vector2(grid_x, grid_y)
 

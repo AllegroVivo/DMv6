@@ -7,8 +7,8 @@ from typing     import TYPE_CHECKING, Dict, List, Optional, Tuple, Type, Union
 
 # Bulk type imports for the pool
 # from ...fates       import ALL_FATES, SPAWNABLE_FATES
-# from ...heroes      import ALL_HEROES
-# from ...monsters    import ALL_MONSTERS
+from ...heroes      import ALL_HEROES
+from ...monsters    import ALL_MONSTERS
 # from ...relics      import ALL_RELICS
 from ...rooms       import ALL_ROOMS
 # from ...statuses    import ALL_STATUSES
@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     from dm.core.game.game import DMGame
     from ..objects.room     import DMRoom
     from dm.core.objects.object import DMObject
+    from dm.core.objects.monster import DMMonster
+    from dm.core.objects.hero import DMHero
 ################################################################################
 
 __all__ = ("DMObjectPool",)
@@ -48,22 +50,26 @@ class DMObjectPool:
 
         self._state: DMGame = state
 
-        # self.__monster_types: List[Type[DMMonster]] = ALL_MONSTERS.copy()
-        # self.__hero_types: List[Type[DMHero]] = ALL_HEROES.copy()
+        self.__monster_types: List[Type[DMMonster]] = ALL_MONSTERS.copy()
+        self.__hero_types: List[Type[DMHero]] = ALL_HEROES.copy()
         self.__room_types: List[Type[DMRoom]] = ALL_ROOMS.copy()
         # self.__status_types: List[Type[DMStatus]] = ALL_STATUSES.copy()
         # self.__relic_types: List[Type[DMRelic]] = ALL_RELICS.copy()
         # self.__fate_types: List[Type[DMFateCard]] = SPAWNABLE_FATES.copy()
 
-        # self.__monsters: List[DMMonster] = [m(self._state) for m in self.__monster_types]  # type: ignore
-        # self.__heroes: List[DMHero] = [h(self._state) for h in self.__hero_types]  # type: ignore
+        self.__monsters: List[DMMonster] = [m(self._state) for m in self.__monster_types]  # type: ignore
+        self.__heroes: List[DMHero] = [h(self._state) for h in self.__hero_types]  # type: ignore
         self.__rooms: List[DMRoom] = [r(self._state, Vector2()) for r in self.__room_types]  # type: ignore
         # self.__statuses: List[DMStatus] = [s(self._state, None) for s in self.__status_types]  # type: ignore
         # self.__relics: List[DMRelic] = [relic(self._state) for relic in self.__relic_types]  # type: ignore
         # self.__fates: List[DMFateCard] = [f(self._state, 0, 0) for f in self.__fate_types]  # type: ignore
 
-        self.__master: List[DMObject] = self.__rooms.copy()
-        #     self.__monsters.copy() +   # type: ignore
+        self.__master: List[DMObject] = [  # type: ignore
+            self.__rooms.copy() +
+            self.__monsters.copy() +  # type: ignore
+            self.__heroes.copy()
+        ]
+        #
         #     self.__heroes.copy() +
         #     self.__relics.copy() +
         #     self.__statuses.copy() +
@@ -83,10 +89,99 @@ class DMObjectPool:
         **kwargs
     ) -> Union[DMRoom, Type[DMRoom]]:
 
+        if _n is None and obj_id is None:
+            raise ValueError("Must provide either a name or an object ID to spawn a room.")
+
+        return self._spawn(  # type: ignore
+            spawn_type=SpawnType.Room,
+            _n=_n,
+            obj_id=obj_id,
+            start_rank=start_rank,
+            end_rank=end_rank,
+            weighted=weighted,
+            init_obj=init_obj,
+            **kwargs
+        )
+
+################################################################################
+    def monster(
+        self,
+        _n: Optional[str] = None,
+        *,
+        obj_id: Optional[str] = None,
+        start_rank: int = 1,
+        end_rank: int = 5,
+        weighted: bool = True,
+        init_obj: bool = True,
+        **kwargs
+    ) -> Union[DMMonster, Type[DMMonster]]:
+
+        if _n is None and obj_id is None:
+            raise ValueError("Must provide either a name or object ID to spawn a monster.")
+
+        return self._spawn(  # type: ignore
+            spawn_type=SpawnType.Monster,
+            _n=_n,
+            obj_id=obj_id,
+            start_rank=start_rank,
+            end_rank=end_rank,
+            weighted=weighted,
+            init_obj=init_obj,
+            **kwargs
+        )
+
+################################################################################
+    def hero(
+        self,
+        _n: Optional[str] = None,
+        *,
+        obj_id: Optional[str] = None,
+        start_rank: int = 1,
+        end_rank: int = 5,
+        weighted: bool = True,
+        init_obj: bool = True,
+        **kwargs
+    ) -> Union[DMHero, Type[DMHero]]:
+
+        if _n is None and obj_id is None:
+            raise ValueError("Must provide either a name or object ID to spawn a hero.")
+
+        return self._spawn(  # type: ignore
+            spawn_type=SpawnType.Hero,
+            _n=_n,
+            obj_id=obj_id,
+            start_rank=start_rank,
+            end_rank=end_rank,
+            weighted=weighted,
+            init_obj=init_obj,
+            **kwargs
+        )
+
+################################################################################
+    def _spawn(
+        self,
+        spawn_type: SpawnType,
+        _n: Optional[str],
+        obj_id: Optional[str],
+        start_rank: int,
+        end_rank: int,
+        weighted: bool,
+        init_obj: bool,
+        **kwargs
+    ) -> Union[DMObject, Type[DMObject]]:
+
         # Try spawning by name or object ID if provided.
         if _n is not None or obj_id is not None:
+            # Get the source list depending on the spawn type.
+            # We only get the source list instead of the full object pool
+            # because some objects have the same basic name. For example,
+            # "Panic" is the name of a status as well as a room, so we need
+            # to know which source list to search. That's not to say we won't
+            # have to search the full object pool later, but we can at least
+            # narrow it down to a single list first.
+            source = self._get_source_list(spawn_type)
             # Get a list of matches for the current source list.
-            matches = [r for r in self.__rooms if r.name == _n or r._id == obj_id]
+            matches = [o for o in source if o.name == _n or o._id == obj_id]
             # If no matches were found, first search the full object pool to
             # see if the object exists but is not in the current source list.
             # (And raise an error to that extent if it is.)
@@ -98,7 +193,8 @@ class DMObjectPool:
                 raise SpawnNotFound(_n or obj_id, "room", fallback)
             elif len(matches) > 1:
                 raise ValueError(
-                    f"Multiple rooms with name |{_n}| or ID |{obj_id}| found in ObjectPool.room()."
+                    f"Multiple objets with name |{_n}| or ID |{obj_id}| "
+                    "found in ObjectPool._spawn()."
                 )
 
             # If an object was found, return it, initialized or not
@@ -110,7 +206,7 @@ class DMObjectPool:
 
         # Otherwise, spawn a random room.
         return self._spawn_random(  # type: ignore
-            SpawnType.Room,
+            spawn_type,
             start_rank,
             end_rank,
             weighted,
@@ -151,8 +247,8 @@ class DMObjectPool:
             weights = self._generate_weights(obj_type)
             eligible_weights = [weights[rank] for rank in range(start_rank, end_rank + 1)]
 
-        # Going to use random here instead of our own RNG because it already
-        # accepts the weights in this configuration. <_<
+        # Going to use Python's random here instead of our own RNG because it
+        # already accepts the weights in this configuration. <_<
         chosen_idx = random.choices(
             list(eligible_objs.keys()), weights=eligible_weights, k=1
         )[0]

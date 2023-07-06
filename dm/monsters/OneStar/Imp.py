@@ -1,30 +1,29 @@
 from __future__ import annotations
 
-from typing     import TYPE_CHECKING
+from pygame     import Vector2
+from typing     import TYPE_CHECKING, Optional
 
 from dm.core.objects.monster import DMMonster
 
 if TYPE_CHECKING:
-    from dm.core    import DMGame
+    from dm.core.game.game import DMGame
 ################################################################################
 
-__all__ = ("Imp", )
+__all__ = ("Imp",)
 
 ################################################################################
 class Imp(DMMonster):
 
-    def __init__(self, game: DMGame, level: int = 1):
+    def __init__(self, game: DMGame, start_cell: Optional[Vector2] = None):
 
         super().__init__(
-            game,
-            level,
+            game, start_cell,
             _id="MON-102",
             name="Imp",
-            life=40,
-            attack=6,
-            defense=2.0,
             rank=1,
-            idle_frames=6
+            life=40,
+            atk=6,
+            defense=2.0
         )
 
 ################################################################################

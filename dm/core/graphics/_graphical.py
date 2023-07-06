@@ -24,6 +24,9 @@ class GraphicalComponent:
     _static : Optional[:class:`Surface`]
         The base static sprite for the object.
 
+    _zoom : Optional[:class:`Surface`]
+        The zoomed sprite for the object.
+
     Properties:
     -----------
     game : :class:`DMGame`
@@ -31,6 +34,9 @@ class GraphicalComponent:
 
     static : Optional[:class:`Surface`]
         The base static sprite for the object.
+
+    zoom : Optional[:class:`Surface`]
+        The zoomed sprite for the object.
 
     Methods:
     --------

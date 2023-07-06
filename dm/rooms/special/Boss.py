@@ -26,13 +26,12 @@ class BossRoom(DMBattleRoom):
             _id="BOSS-000",
             name="Boss Chamber",
             description="The Dungeon Boss awaits the intruders...",
-            rank=0,
-            unlock=None
+            rank=0
         )
 
 ################################################################################
-    @staticmethod
-    def is_boss_room() -> bool:
+    @property
+    def is_boss(self) -> bool:
 
         return True
 

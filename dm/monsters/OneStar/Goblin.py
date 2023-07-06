@@ -1,29 +1,29 @@
 from __future__ import annotations
 
-from typing     import TYPE_CHECKING
+from pygame     import Vector2
+from typing     import TYPE_CHECKING, Optional
 
 from dm.core.objects.monster import DMMonster
 
 if TYPE_CHECKING:
-    from dm.core    import DMGame
+    from dm.core.game.game import DMGame
 ################################################################################
 
-__all__ = ("Goblin", )
+__all__ = ("Goblin",)
 
 ################################################################################
 class Goblin(DMMonster):
 
-    def __init__(self, game: DMGame, level: int = 1):
+    def __init__(self, game: DMGame, start_cell: Optional[Vector2] = None):
 
         super().__init__(
-            game,
-            level,
+            game, start_cell,
             _id="MON-103",
             name="Goblin",
+            rank=1,
             life=50,
-            attack=4,
-            defense=1.0,
-            rank=1
+            atk=4,
+            defense=1.0
         )
 
 ################################################################################

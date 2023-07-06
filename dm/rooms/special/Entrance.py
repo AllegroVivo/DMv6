@@ -22,13 +22,12 @@ class EntranceRoom(DMRoom):
             _id="ENTR-000",
             name="Entrance",
             description="An entryway into to the dungeon.",
-            rank=0,
-            unlock=None
+            rank=0
         )
 
 ################################################################################
-    @staticmethod
-    def is_entry_room() -> bool:
+    @property
+    def is_entrance(self) -> bool:
 
         return True
 
