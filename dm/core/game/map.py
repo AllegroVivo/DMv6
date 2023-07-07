@@ -183,6 +183,7 @@ class DMDungeonMap:
 
         hero = self.game.spawn.hero("Farmer")
         self.game.dungeon.add_hero(hero)
+        hero.start_movement()
 
 ################################################################################
     def get_adjacent_rooms(

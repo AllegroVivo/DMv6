@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from dm.core.objects.object    import DMObject
     from dm.core.game.game         import DMGame
     from dm.core.objects.monster      import DMMonster
+    from dm.core.objects.hero         import DMHero
 ################################################################################
 
 __all__ = ("HeroGraphical",)
@@ -27,10 +28,11 @@ class HeroGraphical(UnitGraphical):
     )
 
 ################################################################################
-    def __init__(self, parent: DMObject, frame_count: int = 5):
+    def __init__(self, parent: DMHero, frame_count: int = 5):
 
         # Instantiate this first so it's present when we call `_load_sprites` in the parent.
         self._death: Optional[Surface] = None
+        self._screen_pos: Vector2 = None  # type: ignore
 
         super().__init__(parent, frame_count)
 
@@ -45,30 +47,26 @@ class HeroGraphical(UnitGraphical):
             )
 
 ################################################################################
+    def _init_screen_pos(self) -> None:
+
+        self._screen_pos = self.parent.room.center
+
+################################################################################
     @property
     def current_frame(self) -> Surface:
 
-        if self.parent._mover.dying:
+        if self._mover.dying:
             return self._death
 
         return super().current_frame
 
 ################################################################################
-    @property
-    def screen_pos(self) -> Vector2:
+    def assume_attack_position(self) -> None:
 
         if self.parent.engaged:
             position = Vector2(self.parent._opponent.screen_pos)
             position.x += (self.parent._opponent._graphics.current_frame.get_width() / 2) + 5
-            return position
-
-        return self.parent.screen_pos
-
-################################################################################
-    @property
-    def dying(self) -> bool:
-
-        return self.parent._mover.dying
+            self._screen_pos = position
 
 ################################################################################
     def _copy(self, parent: DMMonster) -> HeroGraphical:

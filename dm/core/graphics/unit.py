@@ -7,6 +7,7 @@ from typing     import TYPE_CHECKING, List, Optional, Tuple, Type, TypeVar
 
 from ._animator  import AnimatorComponent
 from ._graphical    import GraphicalComponent
+from .movement import MovementComponent
 from utilities      import *
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ class UnitGraphical(GraphicalComponent):
     )
 
 ################################################################################
-    def __init__(self, parent: DMObject, frame_count: int):
+    def __init__(self, parent: DMUnit, frame_count: int):
 
         super().__init__(parent)
 
@@ -43,7 +44,8 @@ class UnitGraphical(GraphicalComponent):
         self._frame_count: int = frame_count
         self._frame_size: Optional[Tuple[int, int]] = None
 
-        self._animator: Optional[AnimatorComponent] = AnimatorComponent(self)
+        self._animator: AnimatorComponent = AnimatorComponent(self)
+        self._mover: MovementComponent = MovementComponent(self)
 
         self._attacking: bool = False
         self._attack_timer: float = 0.30
@@ -89,12 +91,6 @@ class UnitGraphical(GraphicalComponent):
         return "monsters" if self.parent.is_monster() else "heroes"
 
 ################################################################################
-    @property
-    def screen_pos(self) -> Vector2:
-
-        raise NotImplementedError
-
-################################################################################
     def draw(self, screen: Surface) -> None:
 
         pos_rect = self.current_frame.get_rect(center=self.screen_pos)
@@ -122,6 +118,9 @@ class UnitGraphical(GraphicalComponent):
 
         self._animator.update(dt)
 
+        if self._mover.moving:
+            self._mover.update(dt)
+
         if self._attacking:
             self._attack_timer -= dt
             if self._attack_timer <= 0:
@@ -147,8 +146,10 @@ class UnitGraphical(GraphicalComponent):
 
         new_obj: Type[UG] = super()._copy(parent)  # type: ignore
 
-        new_obj._attack = self._attack.copy()
         new_obj._animator = self._animator._copy(new_obj)
+        new_obj._mover = self._mover._copy(new_obj)
+
+        new_obj._attack = self._attack.copy()
         new_obj._spritesheet = self._spritesheet.copy()
 
         new_obj._frame_count = self._frame_count
@@ -171,5 +172,16 @@ class UnitGraphical(GraphicalComponent):
         # Implemented in the HeroGraphical class since they're the only ones that
         # have a death sprite.
         pass
+
+################################################################################
+    def start_movement(self) -> None:
+
+        self._mover.start_movement()
+
+################################################################################
+    @property
+    def moving(self) -> bool:
+
+        return self._mover.moving
 
 ################################################################################

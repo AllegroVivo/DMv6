@@ -20,6 +20,8 @@ from utilities              import *
 if TYPE_CHECKING:
     from dm.core.game.game import DMGame
     from dm.core.game.contexts import AttackContext
+    from ..graphics.hero import HeroGraphical
+    from ..graphics.monster import MonsterGraphical
 ################################################################################
 
 __all__ = ("DMUnit",)
@@ -33,7 +35,6 @@ class DMUnit(DMObject):
         "_stats",
         "_graphics",
         "_room",
-        "_mover",
         "_opponent",
     )
 
@@ -44,7 +45,7 @@ class DMUnit(DMObject):
         _id: str,
         name: str,
         description: Optional[str],
-        graphics: UnitGraphical,
+        graphics: Union[HeroGraphical, MonsterGraphical],
         stats: UnitStats,
         rank: int = 0,
         start_cell: Optional[Vector2] = None
@@ -53,13 +54,9 @@ class DMUnit(DMObject):
         super().__init__(state, _id, name, description, rank)
 
         self._room: Optional[Vector2] = start_cell or Vector2(-1, -1)
-
         self._stats: UnitStats = stats
 
-        self._graphics: UnitGraphical = graphics
-        self._mover: Optional[MovementComponent] = None
-        if self.is_hero():
-            self._mover = MovementComponent(self)
+        self._graphics: Union[HeroGraphical, MonsterGraphical] = graphics
 
         self._opponent: Optional[DMUnit] = None
 
@@ -75,7 +72,7 @@ class DMUnit(DMObject):
 
 ################################################################################
     @property
-    def graphics(self) -> UnitGraphical:
+    def graphics(self) -> Union[HeroGraphical, MonsterGraphical]:
 
         return self._graphics
 
@@ -83,16 +80,13 @@ class DMUnit(DMObject):
     @property
     def screen_pos(self) -> Vector2:
 
-        if self._mover is not None:
-            return self._mover.screen_pos
-
         return self._graphics.screen_pos
 
 ################################################################################
     @property
     def moving(self) -> bool:
 
-        return self._mover.moving
+        return self._graphics.moving
 
 ################################################################################
     def draw(self, screen: Surface) -> None:
@@ -102,9 +96,6 @@ class DMUnit(DMObject):
 ################################################################################
     def update(self, dt: float) -> None:
 
-        if self._mover:
-            self._mover.update(dt)
-
         self._graphics.update(dt)
 
 ################################################################################
@@ -112,7 +103,9 @@ class DMUnit(DMObject):
 
         self._opponent = self.room.try_to_engage(self)
         if not self._opponent:
-            self._mover.start_movement()
+            self._graphics.start_movement()
+        elif self.is_hero():
+            self.graphics.assume_attack_position()  # type: ignore
 
 ################################################################################
     def _copy(self, **kwargs) -> DMUnit:
@@ -122,7 +115,6 @@ class DMUnit(DMObject):
         new_obj._room = kwargs.pop("room")
 
         new_obj._graphics = self._graphics._copy(new_obj)
-        new_obj._mover = self._mover._copy(new_obj) if self._mover else None
         new_obj._stats = self._stats._copy()
 
         new_obj._opponent = None
@@ -223,7 +215,7 @@ class DMUnit(DMObject):
     def start_movement(self) -> None:
 
         if self.is_hero():
-            self._mover.start_movement()
+            self._graphics.start_movement()
 
 ################################################################################
     def damage(self, amount: int) -> None:
@@ -232,7 +224,7 @@ class DMUnit(DMObject):
         self._stats.damage(amount)
 
         if not self.is_alive:
-            self._mover.play_death()
+            self._graphics.play_death()
 
 ################################################################################
     def heal(self, amount: int) -> None:

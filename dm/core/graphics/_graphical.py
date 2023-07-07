@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pygame     import Surface
+from pygame     import Surface, Vector2
 from typing     import TYPE_CHECKING, Optional, Type, TypeVar
 
 if TYPE_CHECKING:
@@ -58,12 +58,15 @@ class GraphicalComponent:
         "_parent",
         "_static",
         "_zoom",
+        "_screen_pos",
     )
 
 ################################################################################
     def __init__(self, parent: DMObject):
 
         self._parent: DMObject = parent
+
+        self._screen_pos: Optional[Vector2] = None
 
         self._static: Optional[Surface] = None
         self._zoom: Optional[Surface] = None
@@ -104,11 +107,36 @@ class GraphicalComponent:
         return self._zoom
 
 ################################################################################
+    @property
+    def screen_pos(self) -> Optional[Vector2]:
+
+        if self._screen_pos is None:
+            self._init_screen_pos()
+
+        return self._screen_pos
+
+################################################################################
     def _load_sprites(self) -> None:
         """Loads the sprites for the graphical component. Must be further
         implemented by subclasses."""
 
         raise NotImplementedError
+
+################################################################################
+    def _init_screen_pos(self) -> None:
+
+        # Should be overridden by subclasses if necessary.
+        pass
+
+################################################################################
+    def set_screen_pos(self, pos: Vector2) -> None:
+
+        if not isinstance(pos, Vector2):
+            raise TypeError(
+                f"Expected Vector2, got {type(pos).__name__}."
+            )
+
+        self._screen_pos = pos
 
 ################################################################################
     def draw(self, screen: Surface) -> None:
@@ -150,6 +178,8 @@ class GraphicalComponent:
         new_obj = cls.__new__(cls)
 
         new_obj._parent = parent
+
+        new_obj._screen_pos = None
 
         new_obj._static = self._static
         new_obj._zoom = self._zoom

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pygame
 
-from pygame     import Rect, Surface
+from pygame     import Rect, Surface, Vector2
 from typing     import TYPE_CHECKING, Optional, Tuple, Type, TypeVar
 
 from ._animator  import AnimatorComponent
@@ -27,13 +27,12 @@ class MonsterGraphical(UnitGraphical):
     )
 
 ################################################################################
-    def __init__(self, parent: DMObject, frame_count: int = 5):
+    def __init__(self, parent: DMMonster, frame_count: int = 5):
 
         super().__init__(parent, frame_count)
 
 ################################################################################
-    @property
-    def screen_pos(self) -> Tuple[int, int]:
+    def _init_screen_pos(self) -> None:
 
         parent_room = self.parent.room  # type: ignore
         room_x, room_y = parent_room._graphics.topleft
@@ -46,7 +45,7 @@ class MonsterGraphical(UnitGraphical):
         monster_x = room_x + 25
         monster_y = room_y + monster_spacing * (index + 1)
 
-        return monster_x, monster_y
+        self._screen_pos = Vector2(monster_x, monster_y)
 
 ################################################################################
     def _copy(self, parent: DMMonster) -> MonsterGraphical:

@@ -22,7 +22,7 @@ class DMHero(DMUnit):
     """Represents a hero in the game."""
 
     __slots__ = (
-        "_mover",
+
     )
 
 ################################################################################
@@ -47,12 +47,6 @@ class DMHero(DMUnit):
             start_cell=start_cell,
             stats=UnitStats(1, 1, 1.0)
         )
-
-################################################################################
-    @property
-    def mover(self) -> MovementComponent:
-
-        return self._mover
 
 ################################################################################
     def draw(self, screen: Surface) -> None:
@@ -92,17 +86,5 @@ class DMHero(DMUnit):
     def is_hero() -> bool:
 
         return True
-
-################################################################################
-    def set_target_cell(self, cell: DMRoom) -> None:
-        """Sets the target cell for the hero.
-
-        Parameters:
-        -----------
-        cell: :class:`Vector2`
-            The target cell.
-        """
-
-        self._mover.set_target_cell(cell.grid_pos)
 
 ################################################################################
