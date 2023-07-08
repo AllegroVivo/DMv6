@@ -249,3 +249,8 @@ class DMUnit(DMObject):
         self._graphics.play_attack()
 
 ################################################################################
+    def set_screen_pos(self, pos: Vector2) -> None:
+
+        self._graphics.set_screen_pos(pos)
+
+################################################################################

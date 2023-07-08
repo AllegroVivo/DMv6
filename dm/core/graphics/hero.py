@@ -32,7 +32,6 @@ class HeroGraphical(UnitGraphical):
 
         # Instantiate this first so it's present when we call `_load_sprites` in the parent.
         self._death: Optional[Surface] = None
-        self._screen_pos: Vector2 = None  # type: ignore
 
         super().__init__(parent, frame_count)
 
@@ -49,7 +48,7 @@ class HeroGraphical(UnitGraphical):
 ################################################################################
     def _init_screen_pos(self) -> None:
 
-        self._screen_pos = self.parent.room.center
+        self.parent.set_screen_pos(self.room.center.copy())
 
 ################################################################################
     @property

@@ -120,6 +120,9 @@ class DMObject:
     def __eq__(self, other: DMObject) -> bool:
         """Returns whether or not the two objects are equal."""
 
+        if not isinstance(other, DMObject):
+            return False
+
         return self._uuid == other._uuid
 
 ################################################################################

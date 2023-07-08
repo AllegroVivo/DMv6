@@ -40,7 +40,6 @@ class MovementComponent:
 
         self._parent: UnitGraphical = parent
 
-        self._screen_pos: Vector2 = None  # type: ignore
         self._direction: Optional[Vector2] = Vector2(-1, 0)  # Moving left from the entrance into the dungeon.
         self._target_pos: Optional[Vector2] = None
 
@@ -71,26 +70,6 @@ class MovementComponent:
 
 ################################################################################
     @property
-    def screen_pos(self) -> Vector2:
-
-        if self._screen_pos is None:
-            if self.parent.is_hero():
-                self._screen_pos = self.game.dungeon.entrance_tile.center
-                # Only one valid adjacent tile when at the entrance. (Kinda hacky...)
-                target_room = self.game.dungeon.entrance_tile.adjacent_rooms[0]
-                self._target_pos = target_room.center
-            else:
-                room_x, room_y = self.room._graphics.topleft
-                # If there are no monsters in the room, the spacing will be 0
-                # but that doesn't matter because there are no monsters to draw.
-                monster_spacing = ROOM_SIZE / (len(self.room.monsters) + 1)
-                index = self.parent.room.monsters.index(self.parent)  # type: ignore
-                self._screen_pos = Vector2(room_x + 25, room_y + monster_spacing * (index + 1))
-
-        return self._screen_pos
-
-################################################################################
-    @property
     def moving(self) -> bool:
 
         return self._moving
@@ -102,22 +81,24 @@ class MovementComponent:
         return self._death_timer is not None
 
 ################################################################################
-    def update(self, dt: float) -> None:
+    @property
+    def screen_pos(self) -> Vector2:
 
-        if self.dying:
-            self.update_death(dt)
-        if self.moving:
-            self.update_movement(dt)
+        return self._parent.screen_pos
+
+################################################################################
+    @screen_pos.setter
+    def screen_pos(self, value: Vector2) -> None:
+
+        self._parent._screen_pos = value
 
 ################################################################################
     def update_movement(self, dt: float) -> None:
 
-        # print("Updating movement...")
         # if self._move_cooldown is not None:
-        #     print("Move cooldown is active.")
         #     self._move_cooldown -= dt
-        #     print(f"Move cooldown: {self._move_cooldown}")
         #     return
+
         self.move(dt)
 
 ################################################################################
@@ -129,22 +110,20 @@ class MovementComponent:
             self.finish_death()
         else:
             # Update position based on a parabolic function
-            self._screen_pos.x = lerp(self._death_start.x, self._death_end.x, t)
-            self._screen_pos.y = self._death_start.y - self.DEATH_HEIGHT * (4 * t * (1 - t))
+            x = lerp(self._death_start.x, self._death_end.x, t)
+            y = self._death_start.y - self.DEATH_HEIGHT * (4 * t * (1 - t))
+            self.screen_pos = Vector2(x, y)
 
 ################################################################################
     def move(self, dt: float) -> None:
 
         if self._direction is None:
             self.choose_direction()
-        print(f"Before {self._screen_pos}...")
 
         if self._direction.x != 0:
             self.screen_pos.x += self._direction.x * HERO_SPEED * dt
         elif self._direction.y != 0:
             self.screen_pos.y += self._direction.y * HERO_SPEED * dt
-
-        print(f"After {self._screen_pos}...")
 
         current_grid_pos = pixel_to_grid(self.screen_pos)
         if self.room != self.game.get_room_at(current_grid_pos):
@@ -163,7 +142,7 @@ class MovementComponent:
 ################################################################################
     def sync_screen_pos(self) -> None:
 
-        self._screen_pos = self._target_pos
+        self.screen_pos = self._target_pos
         self._target_pos = None
 
 ################################################################################
@@ -182,11 +161,15 @@ class MovementComponent:
 ################################################################################
     def play_death(self) -> None:
 
+        self.stop_movement()
+
         self._death_timer = 0
         self._death_start = self.screen_pos
 
         death_direction = 1 if self.parent.is_hero() else -1
         self._death_end = self.screen_pos + Vector2(100 * death_direction, 0)
+
+        self._moving = True
 
 ################################################################################
     def finish_death(self) -> None:
@@ -194,6 +177,8 @@ class MovementComponent:
         self._death_timer = None
         self._death_start = None
         self._death_end = None
+
+        self._moving = False
 
 ################################################################################
     def set_target_pos(self) -> None:
@@ -232,7 +217,6 @@ class MovementComponent:
 
         new_obj._parent = parent
 
-        new_obj._screen_pos = None
         new_obj._direction = Vector2(-1, 0)
         new_obj._moving = True if parent.parent.is_hero() else False
         new_obj._target_pos = None

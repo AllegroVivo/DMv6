@@ -91,6 +91,18 @@ class UnitGraphical(GraphicalComponent):
         return "monsters" if self.parent.is_monster() else "heroes"
 
 ################################################################################
+    @property
+    def dying(self) -> bool:
+
+        return self._mover.dying
+
+################################################################################
+    @property
+    def moving(self) -> bool:
+
+        return self._mover.moving
+
+################################################################################
     def draw(self, screen: Surface) -> None:
 
         pos_rect = self.current_frame.get_rect(center=self.screen_pos)
@@ -118,8 +130,11 @@ class UnitGraphical(GraphicalComponent):
 
         self._animator.update(dt)
 
-        if self._mover.moving:
-            self._mover.update(dt)
+        # It needs to be done in this order or the death animation won't play properly.
+        if self.dying:
+            self._mover.update_death(dt)
+        elif self.moving:
+            self._mover.update_movement(dt)
 
         if self._attacking:
             self._attack_timer -= dt
@@ -169,9 +184,7 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def play_death(self) -> None:
 
-        # Implemented in the HeroGraphical class since they're the only ones that
-        # have a death sprite.
-        pass
+        self._mover.play_death()
 
 ################################################################################
     def start_movement(self) -> None:
@@ -179,9 +192,8 @@ class UnitGraphical(GraphicalComponent):
         self._mover.start_movement()
 
 ################################################################################
-    @property
-    def moving(self) -> bool:
+    def handle_death_fade(self, dt: float) -> None:
 
-        return self._mover.moving
+        pass
 
 ################################################################################
