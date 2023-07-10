@@ -20,6 +20,7 @@ class DMBattleManager:
 
     __slots__ = (
         "_state",
+        "_running",
         "_encounters",
     )
 
@@ -27,6 +28,8 @@ class DMBattleManager:
     def __init__(self, state: DMGame):
 
         self._state: DMGame = state
+
+        self._running: bool = False
         self._encounters: List[Any] = []
 
 ################################################################################
@@ -47,14 +50,23 @@ class DMBattleManager:
         pass
 
 ################################################################################
+    def start_battle(self, _type: str):
+
+        pass
+
+################################################################################
     def engage(self, attacker: DMUnit, defender: DMUnit) -> None:
 
         # Maybe broadcast this as an event?
+
+        attacker._opponent = defender
+        defender._opponent = attacker
+
         self._encounters.append(DMEncounter(self.game, attacker, defender))
 
 ################################################################################
-    def remove_encounter(self, encounter: DMEncounter) -> None:
+    def check_battle_over(self) -> bool:
 
-        self._encounters.remove(encounter)
+        pass
 
 ################################################################################

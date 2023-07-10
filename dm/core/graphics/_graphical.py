@@ -181,8 +181,8 @@ class GraphicalComponent:
 
         new_obj._screen_pos = None
 
-        new_obj._static = self._static
-        new_obj._zoom = self._zoom
+        new_obj._static = self._static.copy() if self._static is not None else None
+        new_obj._zoom = self._zoom.copy() if self._zoom is not None else None
 
         return new_obj
 

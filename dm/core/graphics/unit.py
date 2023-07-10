@@ -31,7 +31,10 @@ class UnitGraphical(GraphicalComponent):
         "_frame_size",
         "_attack_timer",
         "_attacking",
+        "_death_alpha",
     )
+
+    DEATH_FADE_SPEED = 127.5  # Fading the alpha 255 to 0 in 2 seconds.
 
 ################################################################################
     def __init__(self, parent: DMUnit, frame_count: int):
@@ -49,6 +52,8 @@ class UnitGraphical(GraphicalComponent):
 
         self._attacking: bool = False
         self._attack_timer: float = 0.30
+
+        self._death_alpha: float = 255.0
 
         self._load_sprites()
 
@@ -105,6 +110,9 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def draw(self, screen: Surface) -> None:
 
+        if self._death_alpha <= 0:
+            return
+
         pos_rect = self.current_frame.get_rect(center=self.screen_pos)
         screen.blit(self.current_frame, pos_rect)
 
@@ -128,14 +136,19 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def update(self, dt: float) -> None:
 
+        if self._death_alpha <= 0:
+            return
+
         self._animator.update(dt)
 
         # It needs to be done in this order or the death animation won't play properly.
         if self.dying:
+            self.death_fade(dt)
             self._mover.update_death(dt)
         elif self.moving:
             self._mover.update_movement(dt)
 
+        print(self._attacking, self._attack_timer)
         if self._attacking:
             self._attack_timer -= dt
             if self._attack_timer <= 0:
@@ -173,6 +186,8 @@ class UnitGraphical(GraphicalComponent):
         new_obj._attack_timer = 0.30
         new_obj._attacking = False
 
+        new_obj._death_alpha = 255.0
+
         return new_obj
 
 ################################################################################
@@ -184,7 +199,7 @@ class UnitGraphical(GraphicalComponent):
 ################################################################################
     def play_death(self) -> None:
 
-        self._mover.play_death()
+        self._mover.start_death()
 
 ################################################################################
     def start_movement(self) -> None:
@@ -192,8 +207,16 @@ class UnitGraphical(GraphicalComponent):
         self._mover.start_movement()
 
 ################################################################################
-    def handle_death_fade(self, dt: float) -> None:
+    def death_fade(self, dt: float) -> None:
 
-        pass
+        self._death_alpha -= dt * self.DEATH_FADE_SPEED
+        self._death_alpha = max(self._death_alpha, 0)
+        self.current_frame.set_alpha(self._death_alpha)  # type: ignore
+
+################################################################################
+    def reset_alpha(self) -> None:
+
+        self._death_alpha = 255.0
+        self.current_frame.set_alpha(self._death_alpha)  # type: ignore
 
 ################################################################################

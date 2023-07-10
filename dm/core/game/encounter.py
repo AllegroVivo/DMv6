@@ -24,6 +24,7 @@ class DMEncounter:
         "_unit1_action_cd",
         "_unit2_action_cd",
         "_final_cd",
+        "_in_progress",
     )
 
 ################################################################################
@@ -31,6 +32,8 @@ class DMEncounter:
 
         self._id: UUID = uuid4()
         self._state: DMGame = state
+
+        self._in_progress: bool = True
 
         self._unit1: DMUnit = unit1
         self._unit2: DMUnit = unit2
@@ -105,14 +108,13 @@ class DMEncounter:
     def disengage(self, ctx: AttackContext) -> None:
 
         print("Disengaging encounter")
-        self._state.battle_manager.remove_encounter(self)
 
         if not ctx.source.is_alive or not ctx.target.is_alive:
             self.game.dispatch_event("on_death", ctx)
 
-        if self._unit1.is_alive and self._unit1.is_hero():
-            self._unit1.after_disengage()
-        if self._unit2.is_alive and self._unit2.is_hero():
-            self._unit2.after_disengage()
+        self._unit1.disengage()
+        self._unit2.disengage()
+
+        self._in_progress = False
 
 ################################################################################

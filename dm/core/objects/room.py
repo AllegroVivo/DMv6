@@ -205,7 +205,7 @@ class DMRoom(DMObject):
             return
 
         for monster in self.monsters:
-            if monster.is_alive:
+            if monster.is_alive and not monster.engaged:
                 self.game.battle_manager.engage(monster, unit)
                 return monster
 

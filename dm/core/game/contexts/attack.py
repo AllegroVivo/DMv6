@@ -97,6 +97,7 @@ class AttackContext(DMContext):
         "_target",
         "_damage",
         "_fail",
+        "_running",
     )
 
 ################################################################################
@@ -121,6 +122,8 @@ class AttackContext(DMContext):
 
         self._damage: DamageComponent = DamageComponent(base_damage)
         self._fail: bool = False
+
+        self._running: bool = True
 
 ################################################################################
     def __repr__(self) -> str:
@@ -174,6 +177,8 @@ class AttackContext(DMContext):
         if not self.will_fail:
             self.source.play_attack_animation()
             self.target.damage(self.damage)
+
+        self._running = False
 
 ################################################################################
     def scale_damage(self, scalar: float) -> None:

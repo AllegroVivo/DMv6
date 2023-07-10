@@ -78,7 +78,7 @@ class MovementComponent:
     @property
     def dying(self) -> bool:
 
-        return self._death_timer is not None
+        return not self.parent.is_alive
 
 ################################################################################
     @property
@@ -90,7 +90,7 @@ class MovementComponent:
     @screen_pos.setter
     def screen_pos(self, value: Vector2) -> None:
 
-        self._parent._screen_pos = value
+        self._parent.set_screen_pos(value)
 
 ################################################################################
     def update_movement(self, dt: float) -> None:
@@ -131,7 +131,7 @@ class MovementComponent:
 
         if self.arrived_at_target():
             self.stop_movement()
-            # self.sync_screen_pos()
+            self.sync_screen_pos()
             self.check_for_encounter()
 
 ################################################################################
@@ -159,7 +159,7 @@ class MovementComponent:
         self._move_cooldown = 0.2
 
 ################################################################################
-    def play_death(self) -> None:
+    def start_death(self) -> None:
 
         self.stop_movement()
 
@@ -220,7 +220,7 @@ class MovementComponent:
         new_obj._direction = Vector2(-1, 0)
         new_obj._moving = True if parent.parent.is_hero() else False
         new_obj._target_pos = None
-        new_obj._move_cooldown = 0.05
+        new_obj._move_cooldown = 0.2
 
         new_obj._death_timer = None
         new_obj._death_start = None

@@ -70,10 +70,10 @@ class AnimatorComponent:
 
         new_obj._parent = parent
 
-        new_obj._current_frame = self._current_frame
-        new_obj._frames = self._frames.copy()
+        new_obj._current_frame = 0
+        new_obj._frames = [f.copy() for f in self._frames]
 
-        new_obj._cooldown = self._cooldown
+        new_obj._cooldown = 0
 
         return new_obj
 

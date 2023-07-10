@@ -54,7 +54,7 @@ class HeroGraphical(UnitGraphical):
     @property
     def current_frame(self) -> Surface:
 
-        if self._mover.dying:
+        if self.dying:
             return self._death
 
         return super().current_frame

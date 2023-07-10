@@ -101,11 +101,12 @@ class DMUnit(DMObject):
 ################################################################################
     def check_for_encounter(self) -> None:
 
-        self._opponent = self.room.try_to_engage(self)
-        if not self._opponent:
-            self._graphics.start_movement()
-        elif self.is_hero():
-            self.graphics.assume_attack_position()  # type: ignore
+        if not self.moving:
+            self._opponent = self.room.try_to_engage(self)
+            if not self._opponent:
+                self._graphics.start_movement()
+            elif self.is_hero():
+                self.graphics.assume_attack_position()  # type: ignore
 
 ################################################################################
     def _copy(self, **kwargs) -> DMUnit:
@@ -204,6 +205,10 @@ class DMUnit(DMObject):
 ################################################################################
     def after_battle(self) -> None:
 
+        self._opponent = None
+
+        self.set_screen_pos(self.room.center)
+
         # We attempt to reengage a monster in the room instead of moving
         # to a new room at a 15% chance.
         if self.random.chance(15):
@@ -232,16 +237,17 @@ class DMUnit(DMObject):
         self._stats.heal(amount)
 
 ################################################################################
-    def after_disengage(self) -> None:
+    def disengage(self) -> None:
 
         self._opponent = None
 
-        if self.random.chance(20):
-            print(f"{self.name} is checking for encounter.")
-            self.check_for_encounter()
-        else:
-            print(f"{self.name} is moving.")
-            self.start_movement()
+        if self.is_hero() and self.is_alive:
+            if self.random.chance(20):
+                print(f"{self.name} is checking for encounter.")
+                self.check_for_encounter()
+            else:
+                print(f"{self.name} is moving.")
+                self.start_movement()
 
 ################################################################################
     def play_attack_animation(self) -> None:
