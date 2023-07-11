@@ -9,22 +9,21 @@ if TYPE_CHECKING:
     from dm.core.game.game    import DMGame
 ################################################################################
 
-__all__ = ("Tester",)
+__all__ = ("Ogre",)
 
 ################################################################################
-class Tester(DMMonster):
+class Ogre(DMMonster):
 
     def __init__(self, game: DMGame, start_cell: Optional[Vector2] = None):
 
         super().__init__(
             game, start_cell,
-            _id="MON-XXX",
-            name="Tester",
-            description="A Snarfblat is upon you!",
-            rank=1,
-            life=50,
-            atk=4,
-            defense=1.0
+            _id="MON-136",
+            name="Ogre",
+            life=150,
+            atk=13,
+            defense=5,
+            rank=3,
         )
 
 ################################################################################

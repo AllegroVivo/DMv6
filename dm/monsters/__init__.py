@@ -8,24 +8,24 @@ __all__ = ("ALL_MONSTERS", )
 
 ################################################################################
 from .OneStar       import *
-
-from .Tester        import Tester
+from .TwoStar       import *
+from .ThreeStar     import *
 ################################################################################
 # All Monsters
 ALL_MONSTERS: List[Type["DMMonster"]] = [
     # 1-Star
-    Bat, Goblin, Imp, Slime, Tester,
+    Bat, Goblin, Imp, Slime,
 
     # 2-Star
-    # DarkSlime, Gargoyle, Harpy, HellHound, Lizardman, Mimic, Orc, Sahuagin,
-    # Salamander, Skull, Zombie,
-    #
+    DarkSlime, Gargoyle, Harpy, HellHound, Lizardman, Mimic, Orc, Sahuagin,
+    Salamander, Skull, Zombie,
+
     # # 3-Star
-    # Cerberus, DireWolf, Dullahan, EntGirl, GargoyleGirl, GoblinGirl, Golem,
-    # HellfireImp, HellHoundGirl, HighOrc, Honeybee, ImpGirl, KingSlime,
-    # LizardmanGirl, Minotaur, MinotaurGirl, Mummy, Nightmare, NymphGirl, Ogre,
-    # OrcGirl, SalamanderGirl, Siren, SkullHound, SkullKnight, SlimeGirl,
-    #
+    Cerberus, DireWolf, Dullahan, EntGirl, GargoyleGirl, GoblinGirl, Golem,
+    HellfireImp, HellHoundGirl, HighOrc, Honeybee, ImpGirl, KingSlime,
+    LizardmanGirl, Minotaur, MinotaurGirl, Mummy, Nightmare, NymphGirl, Ogre,
+    OrcGirl, SalamanderGirl, Siren, SkullHound, SkullKnight, SlimeGirl,
+
     # # 4-Star
     # BlackKnightGirl, Cyclops, Ent, FireWolf, GhoulGirl, IceGolem, Lich,
     # MinotaurKing, NagaGirl, NightmareGirl, Phoenix, Reaper, Shadowmere,
