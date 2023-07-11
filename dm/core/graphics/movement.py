@@ -34,6 +34,7 @@ class MovementComponent:
     DIRECTIONS = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
     DEATH_TIME = 2.0  # Time in seconds to show the death sprite
     DEATH_HEIGHT = 50  # Height of the death arc in pixels
+    MOVE_COOLDOWN = 0.5  # Time in seconds to wait before moving again
 
 ################################################################################
     def __init__(self, parent: UnitGraphical):
@@ -47,7 +48,7 @@ class MovementComponent:
         self._death_start: Optional[Vector2] = None
         self._death_end: Optional[Vector2] = None
 
-        self._move_cooldown: float = 0.05
+        self._move_cooldown: float = 0
         self._moving: bool = True if self.parent.is_hero() else False
 
 ################################################################################
@@ -95,10 +96,12 @@ class MovementComponent:
 ################################################################################
     def update_movement(self, dt: float) -> None:
 
-        # if self._move_cooldown is not None:
-        #     self._move_cooldown -= dt
-        #     return
+        if self._move_cooldown is not None:
+            if self._move_cooldown > 0:
+                self._move_cooldown -= dt
+                return
 
+        self._move_cooldown = None
         self.move(dt)
 
 ################################################################################
@@ -117,8 +120,8 @@ class MovementComponent:
 ################################################################################
     def move(self, dt: float) -> None:
 
-        if self._direction is None:
-            self.choose_direction()
+        if self._target_pos is None:
+            self.set_target_pos()
 
         if self._direction.x != 0:
             self.screen_pos.x += self._direction.x * HERO_SPEED * dt
@@ -131,7 +134,7 @@ class MovementComponent:
 
         if self.arrived_at_target():
             self.stop_movement()
-            self.sync_screen_pos()
+            # self.sync_screen_pos()
             self.check_for_encounter()
 
 ################################################################################
@@ -142,12 +145,19 @@ class MovementComponent:
 ################################################################################
     def sync_screen_pos(self) -> None:
 
-        self.screen_pos = self._target_pos
+        if self.parent.is_hero():
+            self.screen_pos = self.room.center
+        elif self._target_pos is not None:
+            self.screen_pos = self._target_pos
+        else:
+            self.screen_pos = self.room.center
+
         self._target_pos = None
 
 ################################################################################
     def start_movement(self) -> None:
 
+        # self.sync_screen_pos()
         self.set_target_pos()
         self._moving = True
 
@@ -156,7 +166,9 @@ class MovementComponent:
 
         self._moving = False
         self._direction = None
-        self._move_cooldown = 0.2
+
+        if self._move_cooldown is None:
+            self._move_cooldown = self.MOVE_COOLDOWN
 
 ################################################################################
     def start_death(self) -> None:
@@ -189,7 +201,6 @@ class MovementComponent:
         target_room = self.game.get_room_at(self.room.grid_pos + self._direction)
         if target_room is None:
             self.choose_direction()
-            self.set_target_pos()
         else:
             self._target_pos = target_room.center
 
@@ -220,7 +231,7 @@ class MovementComponent:
         new_obj._direction = Vector2(-1, 0)
         new_obj._moving = True if parent.parent.is_hero() else False
         new_obj._target_pos = None
-        new_obj._move_cooldown = 0.2
+        new_obj._move_cooldown = 0
 
         new_obj._death_timer = None
         new_obj._death_start = None

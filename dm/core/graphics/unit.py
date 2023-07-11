@@ -31,10 +31,12 @@ class UnitGraphical(GraphicalComponent):
         "_frame_size",
         "_attack_timer",
         "_attacking",
+        "_final_attack",
         "_death_alpha",
     )
 
     DEATH_FADE_SPEED = 127.5  # Fading the alpha 255 to 0 in 2 seconds.
+    ATTACK_COOLDOWN = 0.30
 
 ################################################################################
     def __init__(self, parent: DMUnit, frame_count: int):
@@ -51,7 +53,8 @@ class UnitGraphical(GraphicalComponent):
         self._mover: MovementComponent = MovementComponent(self)
 
         self._attacking: bool = False
-        self._attack_timer: float = 0.30
+        self._final_attack: bool = False
+        self._attack_timer: float = self.ATTACK_COOLDOWN
 
         self._death_alpha: float = 255.0
 
@@ -108,6 +111,12 @@ class UnitGraphical(GraphicalComponent):
         return self._mover.moving
 
 ################################################################################
+    @property
+    def attacking(self) -> bool:
+
+        return self._attack_timer > 0 and self._attacking
+
+################################################################################
     def draw(self, screen: Surface) -> None:
 
         if self._death_alpha <= 0:
@@ -139,6 +148,9 @@ class UnitGraphical(GraphicalComponent):
         if self._death_alpha <= 0:
             return
 
+        if self.parent._opponent is None and self._attack_timer <= 0:
+            self._attacking = False
+
         self._animator.update(dt)
 
         # It needs to be done in this order or the death animation won't play properly.
@@ -148,17 +160,19 @@ class UnitGraphical(GraphicalComponent):
         elif self.moving:
             self._mover.update_movement(dt)
 
-        print(self._attacking, self._attack_timer)
         if self._attacking:
             self._attack_timer -= dt
             if self._attack_timer <= 0:
                 self._attacking = False
+                if self._final_attack:
+                    self._mover.sync_screen_pos()
+                    self._final_attack = False
 
 ################################################################################
     @property
     def current_frame(self) -> Surface:
 
-        if self._attacking:
+        if self.attacking:
             return self._attack
 
         return self._animator.current_frame
@@ -183,18 +197,20 @@ class UnitGraphical(GraphicalComponent):
         new_obj._frame_count = self._frame_count
         new_obj._frame_size = self._frame_size
 
-        new_obj._attack_timer = 0.30
+        new_obj._attack_timer = self.ATTACK_COOLDOWN
         new_obj._attacking = False
+        new_obj._final_attack = False
 
         new_obj._death_alpha = 255.0
 
         return new_obj
 
 ################################################################################
-    def play_attack(self) -> None:
+    def play_attack(self, final: bool) -> None:
 
-        self._attack_timer = 0.50
+        self._attack_timer = self.ATTACK_COOLDOWN
         self._attacking = True
+        self._final_attack = final
 
 ################################################################################
     def play_death(self) -> None:

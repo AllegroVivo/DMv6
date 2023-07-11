@@ -68,6 +68,12 @@ class DMEncounter:
         return self._unit2
 
 ################################################################################
+    @property
+    def in_progress(self) -> bool:
+
+        return self._in_progress
+
+################################################################################
     def update(self, dt: float) -> None:
 
         # Decrement cooldown timers
@@ -110,9 +116,12 @@ class DMEncounter:
         print("Disengaging encounter")
 
         if not ctx.source.is_alive or not ctx.target.is_alive:
+            print("One of the units is dead, disengaging")
             self.game.dispatch_event("on_death", ctx)
 
+        print("Unit1 Disengaging")
         self._unit1.disengage()
+        print("Unit2 Disengaging")
         self._unit2.disengage()
 
         self._in_progress = False

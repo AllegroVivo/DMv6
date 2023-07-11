@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from dm.core.objects.monster import DMMonster
     from dm.core.objects.room import DMRoom
     from dm.core.game.contexts import DMContext
+    from dm.core.objects.hero import DMHero
 ################################################################################
 
 __all__ = ("DMGame",)
@@ -252,6 +253,13 @@ class DMGame:
 
         return self._dungeon.deployed_monsters
 
+################################################################################
+    @property
+    def heroes(self) -> List[DMHero]:
+
+        return self._dungeon.heroes
+
+################################################################################
     @property
     def battle_manager(self) -> DMBattleManager:
         """The game's battle manager.

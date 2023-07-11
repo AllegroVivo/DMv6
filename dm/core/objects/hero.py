@@ -45,7 +45,7 @@ class DMHero(DMUnit):
             graphics=HeroGraphical(self),
             rank=rank,
             start_cell=start_cell,
-            stats=UnitStats(100, 1, 1.0)
+            stats=UnitStats(1, 1, 1.0)
         )
 
 ################################################################################

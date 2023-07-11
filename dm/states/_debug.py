@@ -28,6 +28,8 @@ class _DebugState(DMState):
         battle_room.deploy(self.game.spawn.monster("Bat", room=Vector2(4, 1)))
         battle_room.deploy(self.game.spawn.monster("Bat", room=Vector2(4, 1)))
 
+        self.game.battle_manager.start_battle("battle")
+
 ################################################################################
     def handle_event(self, event: Event) -> None:
 
@@ -46,5 +48,8 @@ class _DebugState(DMState):
 
         self.game.dungeon.update(dt)
         self.game.battle_manager.update(dt)
+
+        if not self.game.battle_manager.running:
+            self.next_state = "main_menu"
 
 ################################################################################

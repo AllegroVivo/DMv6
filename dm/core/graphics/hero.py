@@ -60,6 +60,12 @@ class HeroGraphical(UnitGraphical):
         return super().current_frame
 
 ################################################################################
+    @property
+    def done_attacking(self) -> bool:
+
+        return not self._attacking
+
+################################################################################
     def assume_attack_position(self) -> None:
 
         if self.parent.engaged:

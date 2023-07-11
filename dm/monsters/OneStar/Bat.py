@@ -22,7 +22,7 @@ class Bat(DMMonster):
             name="Bat",
             rank=1,
             anim_frames=6,
-            life=1,
+            life=3,
             atk=6,
             defense=2.0
         )

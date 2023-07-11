@@ -203,20 +203,6 @@ class DMUnit(DMObject):
         self._room = position
 
 ################################################################################
-    def after_battle(self) -> None:
-
-        self._opponent = None
-
-        self.set_screen_pos(self.room.center)
-
-        # We attempt to reengage a monster in the room instead of moving
-        # to a new room at a 15% chance.
-        if self.random.chance(15):
-            self.check_for_encounter()
-        else:
-            self.start_movement()
-
-################################################################################
     def start_movement(self) -> None:
 
         if self.is_hero():
@@ -240,19 +226,20 @@ class DMUnit(DMObject):
     def disengage(self) -> None:
 
         self._opponent = None
+        # We need to play the attack animation one more time here since, otherwise,
+        # it would only change for a split second before the unit moves again.
+        self.play_attack_animation(True)
 
         if self.is_hero() and self.is_alive:
             if self.random.chance(20):
-                print(f"{self.name} is checking for encounter.")
                 self.check_for_encounter()
             else:
-                print(f"{self.name} is moving.")
                 self.start_movement()
 
 ################################################################################
-    def play_attack_animation(self) -> None:
+    def play_attack_animation(self, final: bool = False) -> None:
 
-        self._graphics.play_attack()
+        self._graphics.play_attack(final)
 
 ################################################################################
     def set_screen_pos(self, pos: Vector2) -> None:
